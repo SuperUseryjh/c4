@@ -16,9 +16,6 @@
 			"id": "05aa485814374ea38ac9419ac60d28cd"
 		}
 	],
-	"assets": {
-		"directory": "./public"
-	},
 	"observability": {
 		"enabled": true
 	}
