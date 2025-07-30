@@ -1,1 +1,75 @@
-document.addEventListener(\'DOMContentLoaded\', () => {\n    const loginContainer = document.getElementById(\'login-container\');\n    const gameContainer = document.getElementById(\'game-container\');\n    const usernameInput = document.getElementById(\'username-input\');\n    const loginButton = document.getElementById(\'login-button\');\n    const scoreDisplay = document.getElementById(\'score-display\');\n    const guessInput = document.getElementById(\'guess-input\');\n    const guessButton = document.getElementById(\'guess-button\');\n    const messageElement = document.getElementById(\'message\');\n\n    let sessionId = null;\n\n    loginButton.addEventListener(\'click\', async () => {\n        const username = usernameInput.value.trim();\n        if (username) {\n            try {\n                const response = await fetch(\'YOUR_WORKER_URL/login\', {\n                    method: \'POST\',\n                    headers: { \'Content-Type\': \'application/json\' },\n                    body: JSON.stringify({ username })\n                });\n                const data = await response.json();\n                if (response.ok) {\n                    sessionId = data.sessionId;\n                    loginContainer.style.display = \'none\';\n                    gameContainer.style.display = \'block\';\n                    messageElement.textContent = \`Welcome, \${username}!\`;\n                    // In a real app, you\'d fetch the initial score here\n                } else {\n                    messageElement.textContent = \`Login failed: \${data.error || response.statusText}\`;\n                }\n            } catch (error) {\n                messageElement.textContent = `Error during login: \${error.message}`;\n            }\n        } else {\n            messageElement.textContent = \'Please enter a username.\';\n        }\n    });\n\n    guessButton.addEventListener(\'click\', async () => {\n        const guess = parseInt(guessInput.value);\n        if (isNaN(guess) || guess < 1 || guess > 100) {\n            messageElement.textContent = \'Please enter a valid number between 1 and 100.\';\n            return;\n        }\n\n        if (!sessionId) {\n            messageElement.textContent = \'Please log in first.\';\n            return;\n        }\n\n        try {\n            const response = await fetch(\'YOUR_WORKER_URL/guess\', {\n                method: \'POST\',\n                headers: { \'Content-Type\': \'application/json\' },\n                body: JSON.stringify({ sessionId, guess })\n            });\n            const data = await response.json();\n\n            if (response.ok) {\n                if (data.correct) {\n                    messageElement.textContent = `Correct! The number was \${data.targetNumber}. Your score is now \${data.newScore}.`;\n                    scoreDisplay.textContent = data.newScore;\n                } else {\n                    messageElement.textContent = `Wrong! The number was \${data.targetNumber}. Try again.`;\n                }\n            } else {\n                messageElement.textContent = `Guess failed: \${data.error || response.statusText}`;\n            }\n        } catch (error) {\n            messageElement.textContent = `Error during guess: \${error.message}`;\n        }\n        guessInput.value = \'\';\n    });\n});\n
+document.addEventListener('DOMContentLoaded', () => {
+    const loginContainer = document.getElementById('login-container');
+    const gameContainer = document.getElementById('game-container');
+    const usernameInput = document.getElementById('username-input');
+    const loginButton = document.getElementById('login-button');
+    const scoreDisplay = document.getElementById('score-display');
+    const guessInput = document.getElementById('guess-input');
+    const guessButton = document.getElementById('guess-button');
+    const messageElement = document.getElementById('message');
+
+    let sessionId = null;
+
+    loginButton.addEventListener('click', async () => {
+        const username = usernameInput.value.trim();
+        if (username) {
+            try {
+                const response = await fetch('YOUR_WORKER_URL/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    sessionId = data.sessionId;
+                    loginContainer.style.display = 'none';
+                    gameContainer.style.display = 'block';
+                    messageElement.textContent = `Welcome, ${username}!`;
+                    // In a real app, you'd fetch the initial score here
+                } else {
+                    messageElement.textContent = `Login failed: ${data.error || response.statusText}`;
+                }
+            } catch (error) {
+                messageElement.textContent = `Error during login: ${error.message}`;
+            }
+        } else {
+            messageElement.textContent = 'Please enter a username.';
+        }
+    });
+
+    guessButton.addEventListener('click', async () => {
+        const guess = parseInt(guessInput.value);
+        if (isNaN(guess) || guess < 1 || guess > 100) {
+            messageElement.textContent = 'Please enter a valid number between 1 and 100.';
+            return;
+        }
+
+        if (!sessionId) {
+            messageElement.textContent = 'Please log in first.';
+            return;
+        }
+
+        try {
+            const response = await fetch('YOUR_WORKER_URL/guess', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId, guess })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                if (data.correct) {
+                    messageElement.textContent = `Correct! The number was ${data.targetNumber}. Your score is now ${data.newScore}.`;
+                    scoreDisplay.textContent = data.newScore;
+                } else {
+                    messageElement.textContent = `Wrong! The number was ${data.targetNumber}. Try again.`;
+                }
+            } else {
+                messageElement.textContent = `Guess failed: ${data.error || response.statusText}`;
+            }
+        } catch (error) {
+            messageElement.textContent = `Error during guess: ${error.message}`;
+        }
+        guessInput.value = '';
+    });
+});
