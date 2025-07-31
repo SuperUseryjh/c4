@@ -8,20 +8,22 @@
 </head>
 <body>
     <div id="login-container">
-        <h1>Login</h1>
-        <input type="text" id="username-input" placeholder="Enter username">
-        <button id="login-button">Login</button>
+        <h1>登录</h1>
+        <input type="text" id="username-input" placeholder="输入用户名">
+        <button id="login-button">登录</button>
     </div>
 
     <div id="game-container" style="display:none;">
-        <h1>Guess the Number (1-100)</h1>
-        <p>Current Score: <span id="score-display">0</span></p>
-        <input type="number" id="guess-input" min="1" max="100" placeholder="Your guess">
-        <button id="guess-button">Guess</button>
+        <h1>猜数字 (1-100)</h1>
+        <p>当前分数: <span id="score-display">0</span></p>
+        <input type="number" id="guess-input" min="1" max="100" placeholder="你的猜测">
+        <button id="guess-button">猜测</button>
         <p id="message"></p>
     </div>
 
     <script>
+        const WORKER_API_BASE_URL = 'https://workerc4.mr-onion-blog.fun';
+
         document.addEventListener('DOMContentLoaded', () => {
             const loginContainer = document.getElementById('login-container');
             const gameContainer = document.getElementById('game-container');
@@ -38,7 +40,7 @@
                 const username = usernameInput.value.trim();
                 if (username) {
                     try {
-                        const response = await fetch('/login', {
+                        const response = await fetch(WORKER_API_BASE_URL + '/login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ username })
@@ -48,33 +50,33 @@
                             sessionId = data.sessionId;
                             loginContainer.style.display = 'none';
                             gameContainer.style.display = 'block';
-                            messageElement.textContent = `Welcome, ${username}!`;
-                            // In a real app, you'd fetch the initial score here
+                            messageElement.textContent = `欢迎, ${username}!`;
+                            // 在实际应用中，您会在这里获取初始分数
                         } else {
-                            messageElement.textContent = `Login failed: ${data.error || response.statusText}`;
+                            messageElement.textContent = `登录失败: ${data.error || response.statusText}`;
                         }
                     } catch (error) {
-                        messageElement.textContent = `Error during login: ${error.message}`;
+                        messageElement.textContent = `登录时发生错误: ${error.message}`;
                     }
                 } else {
-                    messageElement.textContent = 'Please enter a username.';
+                    messageElement.textContent = '请输入用户名。';
                 }
             });
 
             guessButton.addEventListener('click', async () => {
                 const guess = parseInt(guessInput.value);
                 if (isNaN(guess) || guess < 1 || guess > 100) {
-                    messageElement.textContent = 'Please enter a valid number between 1 and 100.';
+                    messageElement.textContent = '请输入 1 到 100 之间的有效数字。';
                     return;
                 }
 
                 if (!sessionId) {
-                    messageElement.textContent = 'Please log in first.';
+                    messageElement.textContent = '请先登录。';
                     return;
                 }
 
                 try {
-                    const response = await fetch('/guess', {
+                    const response = await fetch(WORKER_API_BASE_URL + '/guess', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ sessionId, guess })
@@ -83,16 +85,16 @@
 
                     if (response.ok) {
                         if (data.correct) {
-                            messageElement.textContent = `Correct! The number was ${data.targetNumber}. Your score is now ${data.newScore}.`;
+                            messageElement.textContent = `恭喜！数字是 ${data.targetNumber}。你的分数现在是 ${data.newScore}。`;
                             scoreDisplay.textContent = data.newScore;
                         } else {
-                            messageElement.textContent = `Wrong! The number was ${data.targetNumber}. Try again.`;
+                            messageElement.textContent = `错了！数字是 ${data.targetNumber}。再试一次。`;
                         }
                     } else {
-                        messageElement.textContent = `Guess failed: ${data.error || response.statusText}`;
+                        messageElement.textContent = `猜测失败: ${data.error || response.statusText}`;
                     }
                 } catch (error) {
-                    messageElement.textContent = `Error during guess: ${error.message}`;
+                    messageElement.textContent = `猜测时发生错误: ${error.message}`;
                 }
                 guessInput.value = '';
             });
